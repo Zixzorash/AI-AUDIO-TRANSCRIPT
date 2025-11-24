@@ -1,15 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Upload, 
   FileAudio, 
-  FileVideo, 
   CheckCircle2, 
   AlertCircle, 
   Download, 
   Copy, 
   Wand2, 
   Settings2,
-  Play,
   Languages
 } from 'lucide-react';
 import { LANGUAGES, MODELS } from './constants';
@@ -17,7 +15,7 @@ import { generateSubtitles } from './services/geminiService';
 import { Button } from './components/Button';
 import { SupportedFormat, LanguageCode, ProcessingStatus } from './types';
 
-const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB as requested (Note: Browser Base64 encoding may struggle with files > 50-100MB depending on RAM)
+const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 
 function App() {
   const [file, setFile] = useState<File | null>(null);
@@ -88,16 +86,15 @@ function App() {
       setStatus('processing');
       setProgress(40);
       
-      // Simulate progress for the AI wait time (Gemini is fast but not instant)
+      // Simulate progress for the AI wait time
       const interval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(interval);
-            return 90;
+          if (prev >= 95) {
+            return 95;
           }
           return prev + 5;
         });
-      }, 1000);
+      }, 1500);
 
       const generatedText = await generateSubtitles(
         apiKey,
@@ -168,7 +165,7 @@ function App() {
           </h2>
           <p className="text-zinc-400 max-w-2xl mx-auto">
             AI-powered subtitle generation optimized for erotic dialogue, specific terminology, and realistic sound effects. 
-            Supports mp4, mp3, m4a, wav, acc, flac.
+            Supports video/audio files up to 500MB.
           </p>
         </div>
 
@@ -177,10 +174,10 @@ function App() {
           {/* Left Column: Configuration */}
           <div className="lg:col-span-1 space-y-6">
             
-            {/* File Upload */}
+            {/* File Upload Area */}
             <div 
               className={`
-                relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-300 group
+                relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 group overflow-hidden
                 ${file ? 'border-red-600 bg-red-900/10' : 'border-zinc-700 hover:border-red-500 hover:bg-zinc-800/50'}
               `}
               onDragOver={(e) => e.preventDefault()}
@@ -196,19 +193,19 @@ function App() {
               <input 
                 ref={fileInputRef}
                 type="file" 
-                accept=".mp3,.mp4,.m4a,.wav,.acc,.flac" 
+                accept=".mp3,.mp4,.m4a,.wav,.aac,.flac,.webm" 
                 className="hidden" 
                 onChange={handleFileChange}
               />
               
               <div className="flex flex-col items-center gap-4">
-                <div className={`p-4 rounded-full ${file ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400 group-hover:scale-110 transition-transform'}`}>
+                <div className={`p-4 rounded-full transition-transform duration-300 ${file ? 'bg-red-600 text-white' : 'bg-zinc-800 text-zinc-400 group-hover:scale-105'}`}>
                   {file ? <CheckCircle2 size={32} /> : <Upload size={32} />}
                 </div>
                 <div>
                   {file ? (
                     <div className="space-y-1">
-                      <p className="font-semibold text-white break-all line-clamp-2">{file.name}</p>
+                      <p className="font-semibold text-white break-all line-clamp-2 text-sm">{file.name}</p>
                       <p className="text-xs text-zinc-400">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
                       <button 
                         onClick={(e) => { e.stopPropagation(); setFile(null); }}
@@ -219,8 +216,8 @@ function App() {
                     </div>
                   ) : (
                     <>
-                      <p className="font-medium text-white">Click or Drag file here</p>
-                      <p className="text-xs text-zinc-500 mt-2">Max size 500MB</p>
+                        <p className="font-medium text-white text-sm">Click or Drag file here</p>
+                        <p className="text-xs text-zinc-500 mt-1">Max size 500MB</p>
                     </>
                   )}
                 </div>
@@ -229,7 +226,7 @@ function App() {
               {!file && (
                 <button 
                   onClick={() => fileInputRef.current?.click()}
-                  className="absolute inset-0 w-full h-full cursor-pointer"
+                  className="absolute inset-0 w-full h-full cursor-pointer z-0" 
                 />
               )}
             </div>
@@ -330,7 +327,7 @@ function App() {
               {/* Output Header */}
               <div className="bg-zinc-900/80 border-b border-zinc-800 p-4 flex items-center justify-between backdrop-blur-sm">
                 <div className="flex items-center gap-2">
-                   <div className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></div>
+                   <div className={`w-2 h-2 rounded-full ${status === 'processing' ? 'bg-yellow-500 animate-pulse' : 'bg-red-600'} `}></div>
                    <span className="text-sm font-medium text-white">Live Output</span>
                 </div>
                 
@@ -366,10 +363,10 @@ function App() {
                 )}
 
                 {status === 'processing' && !result && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-6">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 z-20 bg-zinc-900/20 backdrop-blur-sm">
                     <div className="relative">
                       <div className="w-16 h-16 rounded-full border-4 border-zinc-800"></div>
-                      <div className="w-16 h-16 rounded-full border-4 border-t-red-600 animate-spin absolute top-0 left-0"></div>
+                      <div className="w-16 h-16 rounded-full border-t-4 border-t-red-600 animate-spin absolute top-0 left-0"></div>
                     </div>
                     <div className="text-center space-y-2">
                       <p className="text-white font-medium animate-pulse">Analyzing Audio Stream</p>
